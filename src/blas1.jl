@@ -107,6 +107,4 @@ function iamax(x::AbstractArray)
     idx
 end
 
-function gemv!(trans, alpha, A::AbstractMatrix, x::AbstractVector, beta, y::AbstractVector)
-end
 
