@@ -5,9 +5,10 @@ function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T
     transA = uppercase(transA)
     transB = uppercase(transB)
 
-    M = size(A,1)
-    N = size(B,2)
-    K = size(A,2)
+    M = size(A, transA=='N'?1:2)  #size(A,1)
+    K = size(A, transA=='N'?2:1) #size(A,2)
+    Kb = size(B, transB=='N'?1:2)
+    N = size(B, transB=='N'?2:1) #size(B,2)
     
     notA = transA == 'N'
     notB = transB == 'N'
@@ -15,20 +16,20 @@ function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T
     conjB = transB == 'C'
     
     
-    if notA
-        nrowA = M
-        ncolA = K
-    else
-        nrowA = K
-        ncolA = M
-    end
-
-    if notB
-        nrowB = K
-    else
-        nrowB = N
+    info = 0
+    if !notA && !conjA && !(transA=='T')
+        info = 1
+        throw(ArgumentError("transA should be one of 'N', 'T' or 'C'"))
+    elseif !notB && !conjB && !(transB=='T')
+        info = 2
+        throw(ArgumentError("transB should be one of 'N', 'T' or 'C'"))
+    elseif M != size(C,1) || N != size(C,2)
+        throw(DimensionMismatch("A has size ($nrowA,$ncolA), B has size ($nrowB,$ncolB), C has size $(size(C))"))
+    elseif Kb != K
+        throw(DimensionMismatch("op(A) has dimensions ($M,$K) and op(B) has dimensions ($Kb,$N) which are incompatible in matrix multiplication"))
     end
     
+        
     if M==0 || N==0 || ((alpha==0 || K==0) && beta==1)
         return C
     end
@@ -148,6 +149,7 @@ function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T
                 for i = 1:M
                     temp = zero(T)
                     for l = 1:K
+                        #println("$j, $i, $l --- A: $(size(A)) --- B: $(size(B))")
                         temp += conj(A[l,i]) * conj(B[j,l])
                     end
                     if beta == 0
@@ -178,7 +180,7 @@ function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T
                 for i = 1:M
                     temp = zero(T)
                     for l = 1:K
-                        temp += A[l,j]*conj(B[j,l])
+                        temp += A[l,i]*conj(B[j,l])
                     end
                     if beta==0
                         C[i,j] = alpha*temp
