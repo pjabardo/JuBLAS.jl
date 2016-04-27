@@ -25,7 +25,7 @@ function gemv!{T<:Number}(trans::Char, alpha, A::AbstractMatrix{T},
     end
     
     
-    if M==0 || N==0 || (alpha==z && beta==o)
+    if M==0 || N==0 || (alpha==0 && beta==1)
         return y
     end
 
@@ -51,7 +51,7 @@ function gemv!{T<:Number}(trans::Char, alpha, A::AbstractMatrix{T},
             end
         end
     end
-    if alpha==z
+    if alpha==0
         return y
     end
     
@@ -69,7 +69,7 @@ function gemv!{T<:Number}(trans::Char, alpha, A::AbstractMatrix{T},
     else
 
         for j = 1:N
-            temp = z
+            temp = zero(T)
             if noconj
                 for i = 1:M
                     temp += A[i,j]*x[i]
