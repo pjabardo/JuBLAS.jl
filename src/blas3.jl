@@ -207,3 +207,11 @@ function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T
 
 
 end
+
+function gemm{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T}, 
+                         B::AbstractMatrix{T})
+    gemm!(transA, transB, alpha, A, B, zero(T),
+          similar(A, T, size(A, transA=='N'?1:2),
+                  size(B, transB=='N'?2:1)))
+end
+

@@ -1,4 +1,3 @@
-module JuBLAS
 
 function blascopy!(x::AbstractArray, y::AbstractArray)
     for i = 1:length(x)
