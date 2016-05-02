@@ -1,4 +1,4 @@
-
+import Base.LinAlg.BLAS.blascopy
 function blascopy!(x::AbstractArray, y::AbstractArray)
     for i = 1:length(x)
         y[i] = x[i]
@@ -6,12 +6,12 @@ function blascopy!(x::AbstractArray, y::AbstractArray)
     dy
 end
 
+import Base.LinAlg.BLAS.scal!
 function scal!(a, x::AbstractArray)
     for i = 1:length(x)
         x[i] = a * x[i]
     end
 end
-
 
 function dot{T<:Real}(x::AbstractArray{T}, y::AbstractArray{T})
 
@@ -24,6 +24,7 @@ function dot{T<:Real}(x::AbstractArray{T}, y::AbstractArray{T})
     
 end
 
+import Base.LinAlg.BLAS.doct
 function dotc{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}})
     tmp = zero(Complex{T})
     for i = 1:length(x)
@@ -33,6 +34,7 @@ function dotc{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}
 end
 
 
+import Base.LinAlg.BLAS.dotu
 function dotu{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}})
     tmp = zero(Complex{T})
     for i = 1:length(x)
@@ -42,7 +44,7 @@ function dotu{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}
 end
 
     
-
+import Base.LinAlg.BLAS.nrm2
 function nrm2{T<:Number}(x::AbstractArray{T})
     n = length(x)
     if n < 1
@@ -59,7 +61,7 @@ function nrm2{T<:Number}(x::AbstractArray{T})
 end
 
     
-
+import Base.LinAlg.BLAS.asum
 function asum{T<:Number}(x::AbstractArray{T})
 
     n = length(x)
@@ -77,6 +79,7 @@ function asum{T<:Number}(x::AbstractArray{T})
     
 end
     
+import Base.LinAlg.BLAS.axpy!
 function axpy!(a, x::AbstractArray, y::AbstractArray)
 
     for i = 1:length(x)
@@ -86,6 +89,7 @@ function axpy!(a, x::AbstractArray, y::AbstractArray)
         
 end
 
+import Base.LinAlg.BLAS.iamax
 function iamax(x::AbstractArray)
     n = length(x)
     if n < 1

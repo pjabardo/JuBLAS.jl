@@ -1,5 +1,6 @@
 
 
+import Base.LinAlg.BLAS.gemm!
 function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T}, 
                           B::AbstractMatrix{T}, beta, C::AbstractMatrix{T})
     transA = uppercase(transA)
@@ -210,6 +211,7 @@ function gemm!{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T
 
 end
 
+import Base.LinAlg.BLAS.gemm
 function gemm{T<:Number}(transA::Char, transB::Char, alpha, A::AbstractMatrix{T}, 
                          B::AbstractMatrix{T})
     gemm!(transA, transB, alpha, A, B, zero(T),
