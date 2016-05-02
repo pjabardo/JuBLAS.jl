@@ -1,4 +1,4 @@
-import Base.LinAlg.BLAS.blascopy
+import Base.LinAlg.BLAS.blascopy!
 function blascopy!(x::AbstractArray, y::AbstractArray)
     for i = 1:length(x)
         y[i] = x[i]
@@ -24,7 +24,7 @@ function dot{T<:Real}(x::AbstractArray{T}, y::AbstractArray{T})
     
 end
 
-import Base.LinAlg.BLAS.doct
+import Base.LinAlg.BLAS.dotc
 function dotc{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}})
     tmp = zero(Complex{T})
     for i = 1:length(x)
@@ -79,7 +79,7 @@ function asum{T<:Number}(x::AbstractArray{T})
     
 end
     
-import Base.LinAlg.BLAS.axpy!
+#import Base.LinAlg.BLAS.axpy!
 function axpy!(a, x::AbstractArray, y::AbstractArray)
 
     for i = 1:length(x)

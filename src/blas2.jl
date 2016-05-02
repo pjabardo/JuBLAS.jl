@@ -83,7 +83,7 @@ function gemv!{T<:Number}(trans::Char, alpha, A::AbstractMatrix{T},
     
 end
 
-import Base.LinAlg.BLAS.gemv!
+import Base.LinAlg.BLAS.gemv
 function gemv{T<:Number}(trans::Char, alpha, A::AbstractMatrix{T},x::AbstractVector{T})
     gemv!(trans, alpha, A, x, zero(T), similar(x, T, size(A, (trans=='N'?1:2))))
 end
