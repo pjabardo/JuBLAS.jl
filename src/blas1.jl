@@ -13,7 +13,7 @@ function scal!(a, x::AbstractArray)
     end
 end
 
-function dot{T1<:Real,T2<:Real}(x::AbstractArray{T1}, y::AbstractArray{T2})
+function dot(x::AbstractArray{T1}, y::AbstractArray{T2}) where {T2<:Real,T1<:Real}
     T = promote_type(T1,T2)
 
     tmp = zero(T)
@@ -24,7 +24,7 @@ function dot{T1<:Real,T2<:Real}(x::AbstractArray{T1}, y::AbstractArray{T2})
     
 end
 
-function dot{T1<:Real,T2<:Real}(a, x::AbstractArray{T1}, y::AbstractArray{T2})
+function dot(a, x::AbstractArray{T1}, y::AbstractArray{T2}) where {T2<:Real,T1<:Real}
     T = promote_type(T1,T2)
 
     tmp = zero(T) + a
@@ -36,7 +36,7 @@ function dot{T1<:Real,T2<:Real}(a, x::AbstractArray{T1}, y::AbstractArray{T2})
 end
 
 import Base.LinAlg.BLAS.dotc
-function dotc{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}})
+function dotc(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}}) where {T<:Real}
     tmp = zero(Complex{T})
     for i = 1:length(x)
         tmp = tmp + conj(x[i]) * y[i]
@@ -46,7 +46,7 @@ end
 
 
 import Base.LinAlg.BLAS.dotu
-function dotu{T<:Real}(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}})
+function dotu(x::AbstractArray{Complex{T}}, y::AbstractArray{Complex{T}}) where {T<:Real}
     tmp = zero(Complex{T})
     for i = 1:length(x)
         tmp = tmp + x[i] * y[i]
@@ -56,7 +56,7 @@ end
 
     
 import Base.LinAlg.BLAS.nrm2
-function nrm2{T<:Number}(x::AbstractArray{T})
+function nrm2(x::AbstractArray{T}) where {T<:Number}
     n = length(x)
     if n < 1
         return abs(zero(T))
@@ -73,7 +73,7 @@ end
 
     
 import Base.LinAlg.BLAS.asum
-function asum{T<:Number}(x::AbstractArray{T})
+function asum(x::AbstractArray{T}) where {T<:Number}
 
     n = length(x)
     if n < 1
@@ -132,7 +132,7 @@ function rot!(dx::AbstractArray, dy::AbstractArray, c, s)
 
 end
 
-function rotm!{T<:Real}(dx::AbstractArray{T}, dy::AbstractArray{T}, dparam::AbstractArray{T})
+function rotm!(dx::AbstractArray{T}, dy::AbstractArray{T}, dparam::AbstractArray{T}) where {T<:Real}
 
     n = length(dx)
     dflag = dparam[1]
@@ -176,7 +176,7 @@ function rotm!{T<:Real}(dx::AbstractArray{T}, dy::AbstractArray{T}, dparam::Abst
 end
 
 
-function drotg{T<:Real}(a::T,b::T,c::T,s::T)
+function rotg(da::T,db::T,c::T,s::T) where {T<:Real}
 
     roe = db
     if abs(da) > abs(db)
@@ -203,3 +203,153 @@ function drotg{T<:Real}(a::T,b::T,c::T,s::T)
     end
     return (da, db)
 end
+
+
+
+function rotmg!(dd1::T, dd2::T, dx1::T, dy1::T, dparam::AbstractVector{T}) where {T<:Real}
+
+    two = 2*one(T)
+    gam = convert(T, 4096)
+    gamsq = convert(T, 16777216)
+    rgamsq = convert(T, 5.9604645e-8)
+
+    if dd1 < z
+        dflag = -one(T)
+        dh11 = zero(T)
+        dh12 = zero(T)
+        dh21 = zero(T)
+        dh22 = zero(T)
+
+        dd1 = zero(T)
+        dd2 = zero(T)
+        dx1 = zero(T)
+    else
+        dp2 = dd2 * dy1
+        if dp2==zero(T)
+            dflag = -two
+            dparam[1] = dflag
+            return dd1, dd2, dx1, dy1, dparam
+        end
+        dp1 = dd1*dx1
+        dq2 = dp2*dy1
+        dq1 = dp1*dx1
+        
+        if abs(dq1) > abs(dq2)
+            dh21 = -dy1/dx1
+            dh12 = dp2 / dp1
+            
+            du = one(T) - dh12*dh21
+            if du > zero(T)
+                dflag = zero(T)
+                dd1 = dd1/du
+                dd2 = dd2/du
+                dx1 = dx1*du
+            end
+        else
+            if dq2 < zero(T)
+                dflag = -one(T)
+                dh11 = zero(T)
+                dh11 = zero(T)
+                dh12 = zero(T)
+                dh21 = zero(T)
+                dh22 = zero(T)
+                
+                dd1 = zero(T)
+                dd2 = zero(T)
+                dx1 = zero(T)
+            else
+                dflag = one(T)
+                dh11 = dp1/dp2
+                dh22 = dx1 / dy1
+                du = one(T) + dh11*dh22
+                dtemp = dd2/du
+                dd2 = dd1/du
+                dd1 = dtemp
+                dx1 = dy1*du
+            end
+        end
+        
+        if dd1 != zero(T)
+            while (dd1 <= rgamsq || dd1 >= gamsq)
+                if dflag==zero(T)
+                    dh11 = one(T)
+                    dh22 = one(T)
+                    dflag = -one(T)
+                else
+                    dh21 = -one(T)
+                    dh12 = one(T)
+                    dflag = -one(T)
+                end
+                if dd1 <= rgamsq
+                    dd1 = dd1 * gam*gam
+                    dx1 = dx1/gam
+                    dh11 = dh11/gam
+                    dh12 = dh12/gam
+                else
+                    dd1 = dd1 / (gam*gam)
+                    dx1 = dx1 * gam
+                    dh11 = dh11*gam
+                    dh12 = dh12*gam
+                end
+                
+            end
+        end
+
+        if dd2 != zero(T)
+            while (abs(dd2) <= rgamsq || abs(dd2) >= gamsq)
+                if dflag==zero(T)
+                    dh11 = one(T)
+                    dh22 = one(T)
+                    dflag = -one(T)
+                else
+                    dh21 = -one(T)
+                    dh12 = one(T)
+                    dflag = -one(T)
+                end
+                if abs(dd2) <= rgamsq
+                    dd2 = dd2*gam*gam
+                    dh21 = dh21 / gam
+                    dh22 = dh22 / gam
+                else
+                    dd2 = dd2 / (gam*gam)
+                    dh21 = dh21*gam
+                    dh22 = dh22*gam
+                end
+            end
+        end
+
+    end
+
+    if dflag < zero(T)
+        dparam[2] = dh11
+        dparam[3] = dh21
+        dparam[4] = dh12
+        dparam[5] = dh22
+    elseif dflag==zero(T)
+        dparam[3] = dh21
+        dparam[4] = dh12
+    else
+        dparam[2] = dh11
+        dparam[5] = dh22
+    end
+
+    dparam[1] = dflag
+
+    return dd1, dd2, dx1, dy1, dparam
+               
+    
+end
+
+
+
+function swap!(x::AbstractArray, y::AbstractArray)
+
+    n = length(x)
+    for i = 1:n
+        dtemp = x[i]
+        dx[i] = dy[i]
+        dy[i] = dtemp
+    end
+    
+end
+
